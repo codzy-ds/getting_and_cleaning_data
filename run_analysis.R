@@ -1,7 +1,12 @@
+require(dplyr)
+
 tidyData <- function() {
   getDataSet()
   loadActivityAndFeatures()
-  dtTrain <- loadTrain()
+  dtTrain <- dt_loadTrain()
+  dtTest <- loadTrain()
+  dataset <- mergeData(dtTest, dtTrain)
+  nameVariables(dataset)
 }
 
 getDataSet <- function() {
@@ -12,34 +17,39 @@ getDataSet <- function() {
 }
 
 loadActivityAndFeatures <- function() {
-  activityLabels <<- read.table("UCI HAR Dataset/activity_labels.txt")
+  activityLabels <<- read.table("UCI HAR Dataset/activity_labels.txt", col.names = c("id", "Activities"))
   activityLabels[,2] <- as.character(activityLabels[,2])
   features <<- read.table("UCI HAR Dataset/features.txt")
   features[,2] <- as.character(features[,2])
 }
 
 loadTests <- function() {
-  subjectTest <- read.table("./UCI HAR Dataset/test/subject_test.txt")
+  subjectTest <- read.table("./UCI HAR Dataset/test/subject_test.txt", col.names = c("Subject"))
   xTest <- read.table("./UCI HAR Dataset/test/X_test.txt")
+  colnames(xTest) <- features[,2]
   yTest <- read.table("./UCI HAR Dataset/test/y_test.txt")
+  yTest <- activityLabels[match(yTest$V1, activityLabels$id), 2, drop = F]
   
   cbind(subjectTest, yTest, xTest)
 }
 
 loadTrain <- function() {
-  subjectTrain <- read.table("./UCI HAR Dataset/train/subject_train.txt")
-  xTrain <- read.table("./UCI HAR Dataset/test/X_train.txt")
-  yTrain <- read.table("./UCI HAR Dataset/test/y_train.txt")
+  subjectTrain <- read.table("./UCI HAR Dataset/train/subject_train.txt", col.names = c("Subject"))
+  xTrain <- read.table("./UCI HAR Dataset/train/X_train.txt")
+  colnames(xTrain) <- features[,2]
+  yTrain <- read.table("./UCI HAR Dataset/train/y_train.txt")
+  yTrain <- activityLabels[match(yTrain$V1, activityLabels$id), 2, drop = F]
   
   cbind(subjectTrain, yTrain, xTrain)
 }
 
 mergeData <- function(dtTests, dtTrain) {
-  ## TODO : MB
+  rbind(dtTests, dtTrain)
 }
 
-nameVariables <- function() {
-  ## TODO : MB
+nameVariables <- function(dataset) {
+  names(dataset) <- gsub("\\(","",names(dataset))
+  names(dataset) <- tolower(dataset)
 }
 
 datasetAverage <- function() {
