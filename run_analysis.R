@@ -2,11 +2,13 @@ require(dplyr)
 
 tidyData <- function() {
   getDataSet()
-  loadActivityAndFeatures()
-  dtTrain <- dt_loadTrain()
-  dtTest <- loadTrain()
+  activityLabels <<- loadActivity()
+  features <- loadFeatures()
+  dtTrain <- loadTrain(features[,2])
+  dtTest <- loadTrain(features[,2])
   dataset <- mergeData(dtTest, dtTrain)
-  nameVariables(dataset)
+  dataset <- writeTidy(dataset)
+  extractMeanAndStdDeviation(dataset)
 }
 
 getDataSet <- function() {
@@ -16,27 +18,37 @@ getDataSet <- function() {
   }
 }
 
-loadActivityAndFeatures <- function() {
+loadActivity <- function() {
   activityLabels <<- read.table("UCI HAR Dataset/activity_labels.txt", col.names = c("id", "Activities"))
   activityLabels[,2] <- as.character(activityLabels[,2])
-  features <<- read.table("UCI HAR Dataset/features.txt")
-  features[,2] <- as.character(features[,2])
+  activityLabels
 }
 
-loadTests <- function() {
+loadFeatures <- function() {
+  features <- read.table("UCI HAR Dataset/features.txt")
+  features[,2] <- as.character(features[,2])
+  features[,2] <-  gsub("-", "", features[,2])
+  features[,2] <-  gsub("\\()", "", features[,2])
+  features[,2] <- gsub("\\,", "", features[,2])
+  features[,2] <- gsub("([Bb]ody[Bb]ody|[Bb]ody)","Body",features[,2])
+  features[,2] <- gsub("Mag","Magnitude",features[,2])
+  features
+}
+
+loadTests <- function(variables) {
   subjectTest <- read.table("./UCI HAR Dataset/test/subject_test.txt", col.names = c("Subject"))
   xTest <- read.table("./UCI HAR Dataset/test/X_test.txt")
-  colnames(xTest) <- features[,2]
+  colnames(xTest) <- variables
   yTest <- read.table("./UCI HAR Dataset/test/y_test.txt")
   yTest <- activityLabels[match(yTest$V1, activityLabels$id), 2, drop = F]
   
   cbind(subjectTest, yTest, xTest)
 }
 
-loadTrain <- function() {
+loadTrain <- function(variables) {
   subjectTrain <- read.table("./UCI HAR Dataset/train/subject_train.txt", col.names = c("Subject"))
   xTrain <- read.table("./UCI HAR Dataset/train/X_train.txt")
-  colnames(xTrain) <- features[,2]
+  colnames(xTrain) <- variables
   yTrain <- read.table("./UCI HAR Dataset/train/y_train.txt")
   yTrain <- activityLabels[match(yTrain$V1, activityLabels$id), 2, drop = F]
   
@@ -47,11 +59,14 @@ mergeData <- function(dtTests, dtTrain) {
   rbind(dtTests, dtTrain)
 }
 
-nameVariables <- function(dataset) {
-  names(dataset) <- gsub("\\(","",names(dataset))
-  names(dataset) <- tolower(dataset)
+writeTidy <- function(dataset) {
+  meanstdCols <- (grepl("mean|std", colnames(dataset)) | grepl("Activities", colnames(dataset)) | grepl("Subject", colnames(dataset)))
+  meanStd <- dataset[,meanstdCols]
+  write.table(meanStd, "mean_and_std_tidy.txt")
+  meanStd
 }
 
-datasetAverage <- function() {
-  ## TODO : MB
+extractMeanAndStdDeviation <- function(dataset) {
+  averageDataset <- aggregate(. ~Subject + Activities, dataset, mean)
+  write.table(averageDataset, "average_dataset.txt")
 }
