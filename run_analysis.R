@@ -64,11 +64,11 @@ mergeData <- function(dtTests, dtTrain) {
 writeTidy <- function(dataset) {
   meanstdCols <- (grepl("Mean|Std", colnames(dataset)) | grepl("Activities", colnames(dataset)) | grepl("Subject", colnames(dataset)))
   meanStd <- dataset[,meanstdCols]
-  write.table(meanStd, "mean_and_std_tidy.txt")
+  write.table(meanStd, "mean_and_std_tidy.txt", row.names = FALSE)
   meanStd
 }
 
 extractMeanAndStdDeviation <- function(dataset) {
   averageDataset <- aggregate(. ~Subject + Activities, dataset, mean)
-  write.table(averageDataset, "average_dataset.txt")
+  write.table(averageDataset, "average_dataset.txt", row.names = FALSE)
 }
