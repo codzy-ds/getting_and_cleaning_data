@@ -32,6 +32,8 @@ loadFeatures <- function() {
   features[,2] <- gsub("\\,", "", features[,2])
   features[,2] <- gsub("([Bb]ody[Bb]ody|[Bb]ody)","Body",features[,2])
   features[,2] <- gsub("Mag","Magnitude",features[,2])
+  features[,2] <- gsub("mean","Mean",features[,2])
+  features[,2] <- gsub("std","Std",features[,2])
   features
 }
 
@@ -60,7 +62,7 @@ mergeData <- function(dtTests, dtTrain) {
 }
 
 writeTidy <- function(dataset) {
-  meanstdCols <- (grepl("mean|std", colnames(dataset)) | grepl("Activities", colnames(dataset)) | grepl("Subject", colnames(dataset)))
+  meanstdCols <- (grepl("Mean|Std", colnames(dataset)) | grepl("Activities", colnames(dataset)) | grepl("Subject", colnames(dataset)))
   meanStd <- dataset[,meanstdCols]
   write.table(meanStd, "mean_and_std_tidy.txt")
   meanStd
